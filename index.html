@@ -1,25 +1,244 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>GDrive Encrypt Tool</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDrive Encrypt Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .copy-btn {
+            background-color: #007bff;
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        .copy-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-  <h2>🔐 Enkripsi ID Google Drive</h2>
-  <input id="inputID" placeholder="Masukkan ID Google Drive" style="width:100%">
-  <button onclick="run()">🔗 Enkripsi</button>
-  <p>Hasil link Blogger:</p>
-  <input id="outLink" style="width:100%" readonly>
-  <script>
-    const SECRET = "UltraSecretKey@2024"; // Pastikan cocok dengan Vercel proxy
-    function run() {
-      const raw = document.getElementById("inputID").value.trim();
-      if (!raw) return alert("Masukkan ID");
-      const encrypted = CryptoJS.AES.encrypt(raw, SECRET).toString();
-      const safeBase64 = btoa(encrypted); // encode untuk aman di URL
-      const link = `https://iframe-drakorsubindo7878.blogspot.com/?player=plyr&provider=gdrive&format=video/mp4&link=${encodeURIComponent(safeBase64)}`;
-      document.getElementById("outLink").value = link;
-    }
-  </script>
+    <div class="container">
+        <h2>🔐 Google Drive Video Encryption Tool</h2>
+        
+        <div class="form-group">
+            <label for="inputID">Google Drive File ID:</label>
+            <input type="text" id="inputID" placeholder="Masukkan ID file Google Drive (contoh: 1ABC-def_GHI123jkl)" />
+            <small style="color: #666; font-size: 14px;">
+                ID dapat ditemukan di URL Google Drive: drive.google.com/file/d/<strong>FILE_ID</strong>/view
+            </small>
+        </div>
+        
+        <button onclick="encryptAndGenerate()" id="encryptBtn">🔗 Generate Encrypted Link</button>
+        
+        <div id="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Secret key - harus sama dengan yang di backend Vercel
+        const SECRET_KEY = "UltraSecretKey@2024";
+        
+        function encryptAndGenerate() {
+            const inputElement = document.getElementById("inputID");
+            const resultElement = document.getElementById("result");
+            const encryptBtn = document.getElementById("encryptBtn");
+            
+            const rawId = inputElement.value.trim();
+            
+            // Reset hasil sebelumnya
+            resultElement.style.display = "none";
+            resultElement.className = "result";
+            
+            // Validasi input
+            if (!rawId) {
+                showResult("❌ Error: Silakan masukkan Google Drive File ID", "error");
+                return;
+            }
+            
+            // Validasi format ID Google Drive (minimal 10 karakter, mengandung huruf dan angka)
+            if (!/^[\w-]{10,}$/.test(rawId)) {
+                showResult("❌ Error: Format ID Google Drive tidak valid. ID harus minimal 10 karakter dan hanya mengandung huruf, angka, dan tanda hubung.", "error");
+                return;
+            }
+            
+            try {
+                // Disable button sementara
+                encryptBtn.disabled = true;
+                encryptBtn.textContent = "🔄 Memproses...";
+                
+                // Enkripsi ID menggunakan AES
+                const encrypted = CryptoJS.AES.encrypt(rawId, SECRET_KEY).toString();
+                
+                // Encode ke base64 untuk keamanan URL
+                const safeBase64 = btoa(encrypted);
+                
+                // Generate link Blogger dengan parameter terenkripsi
+                const bloggerLink = `https://iframe-drakorsubindo7878.blogspot.com/?player=plyr&provider=gdrive&format=video/mp4&link=${encodeURIComponent(safeBase64)}`;
+                
+                // Generate link direct proxy
+                const proxyLink = `https://gdrive-proxy-peach.vercel.app/stream?id=${encodeURIComponent(safeBase64)}`;
+                
+                // Tampilkan hasil
+                const resultHTML = `
+                    <div class="success">
+                        <h3>✅ Link berhasil dibuat!</h3>
+                        
+                        <div style="margin: 15px 0;">
+                            <strong>Link Blogger (untuk embed):</strong>
+                            <input type="text" id="bloggerLink" value="${bloggerLink}" readonly style="margin-top: 5px;" />
+                            <button class="copy-btn" onclick="copyToClipboard('bloggerLink')">📋 Copy Link Blogger</button>
+                        </div>
+                        
+                        <div style="margin: 15px 0;">
+                            <strong>Link Proxy Direct:</strong>
+                            <input type="text" id="proxyLink" value="${proxyLink}" readonly style="margin-top: 5px;" />
+                            <button class="copy-btn" onclick="copyToClipboard('proxyLink')">📋 Copy Link Proxy</button>
+                        </div>
+                        
+                        <div style="margin: 15px 0; padding: 10px; background-color: #e7f3ff; border-left: 4px solid #2196F3;">
+                            <strong>📝 Cara Penggunaan:</strong><br>
+                            • Link Blogger: Untuk di-embed ke dalam template Blogger<br>
+                            • Link Proxy: Untuk akses direct ke video (redirect ke Google Drive)
+                        </div>
+                    </div>
+                `;
+                
+                showResult(resultHTML, "success");
+                
+            } catch (error) {
+                console.error("Encryption error:", error);
+                showResult("❌ Error: Gagal melakukan enkripsi. Silakan coba lagi.", "error");
+            } finally {
+                // Re-enable button
+                encryptBtn.disabled = false;
+                encryptBtn.textContent = "🔗 Generate Encrypted Link";
+            }
+        }
+        
+        function showResult(html, type) {
+            const resultElement = document.getElementById("result");
+            resultElement.innerHTML = html;
+            resultElement.className = `result ${type}`;
+            resultElement.style.display = "block";
+        }
+        
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            element.select();
+            element.setSelectionRange(0, 99999); // Untuk mobile
+            
+            try {
+                document.execCommand('copy');
+                
+                // Feedback visual
+                const originalBg = element.style.backgroundColor;
+                element.style.backgroundColor = '#90EE90';
+                setTimeout(() => {
+                    element.style.backgroundColor = originalBg;
+                }, 1000);
+                
+                // Update button text temporarily
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = "✅ Copied!";
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+                
+            } catch (err) {
+                console.error('Copy failed:', err);
+                alert('Copy failed. Please select and copy manually.');
+            }
+        }
+        
+        // Allow Enter key to trigger encryption
+        document.getElementById("inputID").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                encryptAndGenerate();
+            }
+        });
+        
+        // Auto-clear previous results when input changes
+        document.getElementById("inputID").addEventListener("input", function() {
+            const resultElement = document.getElementById("result");
+            if (resultElement.style.display !== "none") {
+                resultElement.style.display = "none";
+            }
+        });
+    </script>
 </body>
 </html>
