@@ -1,20 +1,25 @@
 <!DOCTYPE html>
-<html><head><title>GDrive Encrypt</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script></head>
+<html>
+<head>
+  <title>GDrive Encrypt Tool</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
 <body>
-<h2>Enkripsi ID Google Drive</h2>
-<input id="inputID" placeholder="ID Google Drive">
-<button onclick="run()">Enkripsi</button>
-<p>🔗 Link Blogger:</p>
-<input id="outLink" style="width:100%" readonly>
-<script>
-const SECRET = "UltraSecretKey@2024";
-function run() {
-  const raw = document.getElementById("inputID").value.trim();
-  if (!raw) return alert("Masukkan ID");
-  const enc = CryptoJS.AES.encrypt(raw, SECRET).toString();
-  const link = `https://iframe-drakorsubindo7878.blogspot.com/?player=plyr&provider=gdrive&format=video/mp4&link=${encodeURIComponent(enc)}`;
-  document.getElementById("outLink").value = link;
-}
-</script>
-</body></html>
+  <h2>🔐 Enkripsi ID Google Drive</h2>
+  <input id="inputID" placeholder="Masukkan ID Google Drive" style="width:100%">
+  <button onclick="run()">🔗 Enkripsi</button>
+  <p>Hasil link Blogger:</p>
+  <input id="outLink" style="width:100%" readonly>
+  <script>
+    const SECRET = "UltraSecretKey@2024"; // Pastikan cocok dengan Vercel proxy
+    function run() {
+      const raw = document.getElementById("inputID").value.trim();
+      if (!raw) return alert("Masukkan ID");
+      const encrypted = CryptoJS.AES.encrypt(raw, SECRET).toString();
+      const safeBase64 = btoa(encrypted); // encode untuk aman di URL
+      const link = `https://iframe-drakorsubindo7878.blogspot.com/?player=plyr&provider=gdrive&format=video/mp4&link=${encodeURIComponent(safeBase64)}`;
+      document.getElementById("outLink").value = link;
+    }
+  </script>
+</body>
+</html>
